@@ -1,0 +1,18 @@
+# Entorno
+.env
+.env.local
+
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+build/
+
+# Firebase
+serviceAccountKey.json
+
+# Sistema / editores
+.DS_Store
+.vscode/
+*.log
