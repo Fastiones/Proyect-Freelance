@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChambeX - Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --primary: #28a745; --danger: #dc3545; --warning: #ffc107; --info: #17a2b8; --dark: #343a40; --border: #dee2e6; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
+    .hidden { display: none !important; }
+
+    header { background: var(--primary); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    header h1 { font-size: 1.4rem; }
+    header small { font-size: 0.8rem; opacity: 0.85; display: block; }
+    .btn-logout { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); color: white; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h2 { font-size: 1.05rem; color: var(--dark); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--primary); }
+
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: #555; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: opacity 0.2s; width: 100%; margin-top: 4px; }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-danger  { background: var(--danger); color: white; }
+    .btn-warning { background: var(--warning); color: #333; }
+    .btn-info    { background: var(--info); color: white; }
+    .btn-sm { padding: 6px 14px; width: auto; font-size: 0.82rem; margin-top: 0; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+    .tab { padding: 8px 16px; border-radius: 20px; border: 2px solid var(--primary); background: white; color: var(--primary); cursor: pointer; font-weight: 600; font-size: 0.82rem; white-space: nowrap; }
+    .tab.active { background: var(--primary); color: white; }
+
+    .item { border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+    .item-title { font-weight: 700; margin-bottom: 4px; font-size: 1rem; }
+    .item-sub { font-size: 0.82rem; color: #666; margin-bottom: 4px; }
+    .item-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; margin-left: 4px; }
+    .badge-activa           { background: #d4edda; color: #155724; }
+    .badge-en_proceso       { background: #fff3cd; color: #856404; }
+    .badge-completada       { background: #cce5ff; color: #004085; }
+    .badge-activo           { background: #d4edda; color: #155724; }
+    .badge-en_escrow        { background: #d1ecf1; color: #0c5460; }
+    .badge-pendiente_codigo { background: #fff3cd; color: #856404; }
+    .badge-completado       { background: #cce5ff; color: #004085; }
+    .badge-pendiente        { background: #f8d7da; color: #721c24; }
+    .badge-aceptada         { background: #d4edda; color: #155724; }
+    .badge-rechazada        { background: #f8d7da; color: #721c24; }
+    .badge-id               { background: #e2e3e5; color: #383d41; font-family: monospace; }
+
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; font-size: 0.88rem; }
+    .alert-success { background: #d4edda; color: #155724; }
+    .alert-error   { background: #f8d7da; color: #721c24; }
+    .alert-info    { background: #d1ecf1; color: #0c5460; }
+
+    .code-box { background: #f8f9fa; border: 2px dashed var(--primary); border-radius: 8px; padding: 16px; text-align: center; margin: 10px 0; }
+    .code-box .code { font-size: 2.2rem; font-weight: 900; color: var(--primary); letter-spacing: 8px; }
+    .code-box p { font-size: 0.78rem; color: #666; margin-top: 4px; }
+
+    .auth-toggle { text-align: center; margin-top: 12px; font-size: 0.88rem; }
+    .auth-toggle a { color: var(--primary); cursor: pointer; font-weight: 600; }
+
+    .rol-selector { display: flex; gap: 10px; margin-bottom: 12px; }
+    .rol-btn { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 10px; background: white; cursor: pointer; text-align: center; transition: all 0.2s; }
+    .rol-btn.selected { border-color: var(--primary); background: #e8f5e9; }
+    .rol-btn .icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+    .rol-btn span { font-size: 0.82rem; font-weight: 600; }
+
+    .chat-messages { height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 6px; background: #f8f9fa; }
+    .msg { margin-bottom: 10px; max-width: 80%; }
+    .msg.mine { margin-left: auto; text-align: right; }
+    .msg-bubble { display: inline-block; padding: 8px 12px; border-radius: 12px; font-size: 0.88rem; }
+    .mine  .msg-bubble { background: var(--primary); color: white; }
+    .other .msg-bubble { background: white; border: 1px solid var(--border); }
+    .typing-hint { font-size: 0.75rem; color: #999; height: 18px; padding: 0 4px; margin-bottom: 6px; }
+
+    #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
+    #modal-box { background: white; border-radius: 16px; padding: 24px; width: 90%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
+
+    .auth-hero { text-align: center; margin-bottom: 20px; }
+    .auth-hero .logo { font-size: 3rem; }
+    .auth-hero h1 { color: var(--primary); font-size: 1.8rem; }
+    .auth-hero p { color: #666; font-size: 0.88rem; margin-top: 4px; }
+
+    .wallet-card { background: linear-gradient(135deg, #28a745, #20c997); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; }
+    .wallet-label { font-size: 0.85rem; opacity: 0.9; margin-bottom: 6px; }
+    .wallet-balance { font-size: 2.4rem; font-weight: 900; letter-spacing: 1px; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .stat-box { background: #f8f9fa; border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+    .stat-box.clickable { cursor: pointer; transition: background 0.2s; }
+    .stat-box.clickable:hover { background: #e8f5e9; border-color: var(--primary); }
+    .stat-num   { font-size: 1.6rem; font-weight: 900; color: var(--primary); }
+    .stat-label { font-size: 0.75rem; color: #666; margin-top: 4px; }
+
+    .link-name { color: var(--primary); cursor: pointer; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+    .perfil-avatar { width: 72px; height: 72px; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 10px; overflow: hidden; }
+    .perfil-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .stars { color: #f5c518; font-size: 1.1rem; }
+    .habilidad-tag { display: inline-block; background: #e8f5e9; color: #155724; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; margin: 2px; }
+  </style>
+</head>
+<body>
+
+<header id="header" class="hidden">
+  <div><h1>🔧 ChambeX</h1><small id="header-user"></small></div>
+  <button class="btn-logout" onclick="logout()">Salir</button>
+</header>
+
+<!-- AUTH -->
+<div id="auth-section" class="container">
+  <div class="card" style="margin-top:32px;">
+    <div class="auth-hero">
+      <div class="logo">🔧</div><h1>ChambeX</h1><p>Plataforma de servicios locales</p>
+    </div>
+
+    <div id="login-form">
+      <h2>Iniciar sesión</h2>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="correo@ejemplo.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') login()"></div>
+      <button class="btn btn-primary" onclick="login()">Iniciar sesión</button>
+      <div class="auth-toggle"><a onclick="showAuthStep('forgot-form')">¿Olvidaste tu contraseña?</a></div>
+      <div class="auth-toggle">¿No tienes cuenta? <a onclick="showAuthStep('register-form')">Regístrate</a></div>
+    </div>
+
+    <div id="register-form" class="hidden">
+      <h2>Crear cuenta</h2>
+      <div class="form-group"><label>Soy...</label>
+        <div class="rol-selector">
+          <div class="rol-btn selected" id="rol-empleador" onclick="selectRol('empleador')"><span class="icon">👔</span><span>Empleador</span></div>
+          <div class="rol-btn" id="rol-empleado" onclick="selectRol('empleado')"><span class="icon">🔨</span><span>Empleado</span></div>
+        </div>
+      </div>
+      <div class="form-group"><label>Nombre completo</label><input type="text" id="reg-nombre" placeholder="Tu nombre"></div>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="reg-email" placeholder="correo@ejemplo.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" id="reg-tel" placeholder="6000-0000"></div>
+      <button class="btn btn-primary" onclick="register()">Crear cuenta</button>
+      <div class="auth-toggle">¿Ya tienes cuenta? <a onclick="showAuthStep('login-form')">Inicia sesión</a></div>
+    </div>
+
+    <div id="verify-form" class="hidden">
+      <h2>Verificar cuenta</h2>
+      <p style="color:#555;font-size:0.88rem;margin-bottom:4px;">Enviamos un código de 6 dígitos a:</p>
+      <p style="font-weight:700;margin-bottom:16px;word-break:break-all;" id="verify-email-display"></p>
+      <div class="form-group"><label>Código de verificación</label>
+        <input type="text" id="verify-codigo" placeholder="000000" maxlength="6" style="text-align:center;font-size:2rem;letter-spacing:10px;font-weight:700;" onkeydown="if(event.key==='Enter') verificarCuenta()">
+      </div>
+      <button class="btn btn-primary" onclick="verificarCuenta()">Verificar cuenta</button>
+      <div class="auth-toggle"><a onclick="showAuthStep('login-form')">Volver al inicio de sesión</a></div>
+    </div>
+
+    <div id="forgot-form" class="hidden">
+      <h2>Recuperar contraseña</h2>
+      <p style="color:#555;font-size:0.88rem;margin-bottom:16px;">Te enviaremos un enlace para restablecer tu contraseña.</p>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="forgot-email" placeholder="correo@ejemplo.com" onkeydown="if(event.key==='Enter') recuperarPassword()"></div>
+      <button class="btn btn-primary" onclick="recuperarPassword()">Enviar enlace</button>
+      <div class="auth-toggle"><a onclick="showAuthStep('login-form')">Volver al inicio de sesión</a></div>
+    </div>
+
+    <div id="auth-msg" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- EMPLEADOR -->
+<div id="empleador-section" class="hidden">
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('t-nueva')">➕ Solicitud</div>
+      <div class="tab" onclick="showTab('t-mis-sol')">📋 Solicitudes</div>
+      <div class="tab" onclick="showTab('t-proyectos-emp')">💼 Proyectos</div>
+      <div class="tab" onclick="showTab('t-dashboard-emp')">📊 Dashboard</div>
+    </div>
+
+    <div id="t-nueva" class="card">
+      <h2>Nueva solicitud</h2>
+      <div class="form-group"><label>Título del proyecto</label><input type="text" id="sol-titulo" placeholder="Ej: Reparación de tubería en cocina"></div>
+      <div class="form-group"><label>Categoría</label>
+        <select id="sol-cat"><option>Plomería</option><option>Electricidad</option><option>Pintura</option><option>Carpintería</option><option>Limpieza</option><option>Jardinería</option><option>Otro</option></select>
+      </div>
+      <div class="form-group"><label>Descripción</label><textarea id="sol-desc" placeholder="Describe el trabajo que necesitas..."></textarea></div>
+      <div class="form-group"><label>Presupuesto ($)</label><input type="number" id="sol-precio" placeholder="150"></div>
+      <div class="form-group"><label>Ciudad</label><input type="text" id="sol-ciudad" placeholder="Panamá"></div>
+      <div class="form-group"><label>Barrio</label><input type="text" id="sol-barrio" placeholder="Miraflores"></div>
+      <button class="btn btn-primary" onclick="crearSolicitud()">Publicar solicitud</button>
+      <div id="sol-msg" style="margin-top:10px;"></div>
+    </div>
+
+    <div id="t-mis-sol" class="card hidden">
+      <h2>Mis solicitudes</h2>
+      <button class="btn btn-info btn-sm" style="margin-bottom:12px;" onclick="cargarMisSolicitudes()">🔄 Actualizar</button>
+      <div id="mis-sol-list"></div>
+    </div>
+
+    <div id="t-proyectos-emp" class="card hidden">
+      <h2>Mis proyectos</h2>
+      <button class="btn btn-info btn-sm" style="margin-bottom:12px;" onclick="cargarProyectosEmp()">🔄 Actualizar</button>
+      <div id="proyectos-emp-list"></div>
+    </div>
+
+    <div id="t-dashboard-emp" class="card hidden">
+      <h2>📊 Dashboard</h2>
+      <div class="wallet-card">
+        <div class="wallet-label">Saldo disponible</div>
+        <div class="wallet-balance" id="emp-saldo">$0.00</div>
+      </div>
+      <div class="form-group"><label>Monto a agregar ($)</label><input type="number" id="monto-fondos" placeholder="100" min="1"></div>
+      <button class="btn btn-primary" onclick="agregarFondos()">+ Agregar fondos</button>
+      <div id="fondos-msg" style="margin-top:8px;"></div>
+      <div id="emp-stats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLEADO -->
+<div id="empleado-section" class="hidden">
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" onclick="showTabEmp('t-disp')">🔍 Solicitudes</div>
+      <div class="tab" onclick="showTabEmp('t-proyectos-emd')">💼 Proyectos</div>
+      <div class="tab" onclick="showTabEmp('t-dashboard-emd')">📊 Dashboard</div>
+    </div>
+
+    <div id="t-disp" class="card">
+      <h2>Solicitudes activas</h2>
+      <button class="btn btn-info btn-sm" style="margin-bottom:12px;" onclick="cargarSolicitudesDisp()">🔄 Actualizar</button>
+      <div id="sol-disp-list"></div>
+    </div>
+
+    <div id="t-proyectos-emd" class="card hidden">
+      <h2>Mis proyectos</h2>
+      <button class="btn btn-info btn-sm" style="margin-bottom:12px;" onclick="cargarProyectosEmd()">🔄 Actualizar</button>
+      <div id="proyectos-emd-list"></div>
+    </div>
+
+    <div id="t-dashboard-emd" class="card hidden">
+      <h2>📊 Dashboard</h2>
+      <div id="emd-stats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="hidden">
+  <div id="modal-box">
+    <div id="modal-content"></div>
+    <button class="btn btn-danger btn-sm" style="margin-top:14px;width:100%;" onclick="closeModal()">Cerrar</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const API = `http://${window.location.hostname}:5000/api`;
+  const socket = io(`http://${window.location.hostname}:5000`);
+  let currentUser = JSON.parse(localStorage.getItem('chambex_user') || 'null');
+  let rolSel = 'empleador';
+  let currentChatRoom = null;
+  let typingTimeout = null;
+
+  window.onload = () => { if (currentUser) showApp(); };
+
+  function showApp() {
+    hide('auth-section'); show('header');
+    document.getElementById('header-user').textContent = `${currentUser.nombre} · ${currentUser.rol}`;
+    if (currentUser.rol === 'empleador') { show('empleador-section'); cargarMisSolicitudes(); }
+    else { show('empleado-section'); cargarSolicitudesDisp(); }
+  }
+
+  function logout() { localStorage.removeItem('chambex_user'); location.reload(); }
+  function show(id) { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id).classList.add('hidden'); }
+  function msg(id, text, type = 'error') { document.getElementById(id).innerHTML = `<div class="alert alert-${type}">${text}</div>`; }
+  function estrellas(n) { return '⭐'.repeat(Math.round(n || 0)) + ` ${(n || 0).toFixed(1)}`; }
+
+  // ── AUTH ──
+  function selectRol(r) {
+    rolSel = r;
+    document.getElementById('rol-empleador').classList.toggle('selected', r === 'empleador');
+    document.getElementById('rol-empleado').classList.toggle('selected', r === 'empleado');
+  }
+  function showAuthStep(step) {
+    ['login-form','register-form','verify-form','forgot-form'].forEach(id => hide(id));
+    show(step); document.getElementById('auth-msg').innerHTML = '';
+  }
+  async function login() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    if (!email || !pass) return msg('auth-msg','Completa todos los campos');
+    try {
+      const r = await post(`${API}/auth/login`, { email, password: pass });
+      if (!r.success) return msg('auth-msg', r.error);
+      const perfil = await (await fetch(`${API}/usuarios/${r.data.uid}`)).json();
+      currentUser = { uid: r.data.uid, email: r.data.email, token: r.data.token, nombre: perfil.data.nombre, rol: perfil.data.rol };
+      localStorage.setItem('chambex_user', JSON.stringify(currentUser));
+      showApp();
+    } catch { msg('auth-msg','Error de conexión con el servidor'); }
+  }
+  async function register() {
+    const nombre = document.getElementById('reg-nombre').value.trim();
+    const email  = document.getElementById('reg-email').value.trim();
+    const pass   = document.getElementById('reg-pass').value;
+    const tel    = document.getElementById('reg-tel').value.trim();
+    if (!nombre || !email || !pass) return msg('auth-msg','Completa nombre, correo y contraseña');
+    try {
+      const r = await post(`${API}/auth/register`, { nombre, email, password: pass, rol: rolSel, telefono: tel });
+      if (!r.success) return msg('auth-msg', r.error);
+      document.getElementById('verify-email-display').textContent = email;
+      document.getElementById('verify-codigo').value = '';
+      showAuthStep('verify-form');
+    } catch { msg('auth-msg','Error de conexión con el servidor'); }
+  }
+  async function verificarCuenta() {
+    const email  = document.getElementById('verify-email-display').textContent.trim();
+    const codigo = document.getElementById('verify-codigo').value.trim();
+    if (codigo.length !== 6) return msg('auth-msg','El código debe tener 6 dígitos');
+    try {
+      const r = await post(`${API}/auth/verificar-codigo`, { email, codigo });
+      if (!r.success) return msg('auth-msg', r.error);
+      msg('auth-msg', '✅ ' + r.data.mensaje, 'success');
+      setTimeout(() => { document.getElementById('login-email').value = email; showAuthStep('login-form'); }, 1800);
+    } catch { msg('auth-msg','Error de conexión con el servidor'); }
+  }
+  async function recuperarPassword() {
+    const email = document.getElementById('forgot-email').value.trim();
+    if (!email) return msg('auth-msg','Ingresa tu correo electrónico');
+    try {
+      const r = await post(`${API}/auth/recuperar-password`, { email });
+      if (!r.success) return msg('auth-msg', r.error);
+      msg('auth-msg', '✅ ' + r.data.mensaje, 'success');
+      setTimeout(() => showAuthStep('login-form'), 3000);
+    } catch { msg('auth-msg','Error de conexión con el servidor'); }
+  }
+
+  // ── TABS ──
+  const tabsEmp = ['t-nueva','t-mis-sol','t-proyectos-emp','t-dashboard-emp'];
+  function showTab(id) {
+    tabsEmp.forEach(t => hide(t)); show(id);
+    document.querySelectorAll('#empleador-section .tab').forEach((t,i) => t.classList.toggle('active', tabsEmp[i] === id));
+    if (id === 't-mis-sol')       cargarMisSolicitudes();
+    if (id === 't-proyectos-emp') cargarProyectosEmp();
+    if (id === 't-dashboard-emp') cargarDashboardEmp();
+  }
+  const tabsEmd = ['t-disp','t-proyectos-emd','t-dashboard-emd'];
+  function showTabEmp(id) {
+    tabsEmd.forEach(t => hide(t)); show(id);
+    document.querySelectorAll('#empleado-section .tab').forEach((t,i) => t.classList.toggle('active', tabsEmd[i] === id));
+    if (id === 't-disp')          cargarSolicitudesDisp();
+    if (id === 't-proyectos-emd') cargarProyectosEmd();
+    if (id === 't-dashboard-emd') cargarDashboardEmd();
+  }
+
+  // ── MODAL ──
+  function openModal(html) {
+    document.getElementById('modal-content').innerHTML = html;
+    show('modal-overlay');
+    const cb = document.getElementById('chat-box');
+    if (cb) cb.scrollTop = cb.scrollHeight;
+  }
+  function closeModal() {
+    hide('modal-overlay');
+    if (currentChatRoom) {
+      socket.emit('stop_typing', { proyectoId: currentChatRoom });
+      socket.off('new_message'); socket.off('typing'); socket.off('stop_typing');
+      currentChatRoom = null;
+    }
+    clearTimeout(typingTimeout);
+  }
+
+  // ── PERFIL ──
+  async function verPerfil(uid) {
+    try {
+      const r = await (await fetch(`${API}/usuarios/${uid}`)).json();
+      const u = r.data;
+      const cal = u.rol === 'empleado' ? (u.calificacionPromedio || 0) : (u.calificacionPromedioEmpleador || 0);
+      const rolLabel = u.rol === 'empleado' ? '🔨 Empleado' : '👔 Empleador';
+      openModal(`
+        <div style="text-align:center;margin-bottom:16px;">
+          <div class="perfil-avatar">${u.foto ? `<img src="${u.foto}">` : '👤'}</div>
+          <div style="font-size:1.25rem;font-weight:700;">${u.nombre}</div>
+          <div style="font-size:0.82rem;color:#666;margin-top:2px;">${rolLabel}</div>
+          <div class="stars" style="margin-top:8px;">${estrellas(cal)}</div>
+        </div>
+        ${u.telefono ? `<div style="margin-bottom:8px;font-size:0.88rem;">📱 ${u.telefono}</div>` : ''}
+        ${u.rol === 'empleado' && u.habilidades?.length ? `
+          <div style="margin-bottom:12px;">
+            <div style="font-size:0.82rem;font-weight:600;margin-bottom:6px;">Habilidades:</div>
+            ${u.habilidades.map(h => `<span class="habilidad-tag">${h}</span>`).join('')}
+          </div>` : ''}
+        <button class="btn btn-info btn-sm" style="width:100%;margin-top:4px;" onclick="verCalificaciones('${uid}','${u.rol}')">
+          Ver calificaciones y comentarios
+        </button>
+      `);
+    } catch { alert('Error al cargar perfil'); }
+  }
+
+  async function verCalificaciones(uid, rol) {
+    const endpoint = rol === 'empleado'
+      ? `${API}/calificaciones/empleado/${uid}`
+      : `${API}/calificaciones/empleador/${uid}`;
+    try {
+      const r = await (await fetch(endpoint)).json();
+      const cals = r.data || [];
+      openModal(`
+        <h3 style="margin-bottom:14px;">⭐ Calificaciones recibidas</h3>
+        ${!cals.length ? '<p style="color:#999;text-align:center;padding:20px;">Sin calificaciones aún</p>' :
+          cals.map(c => `
+            <div class="item">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-weight:600;font-size:0.88rem;">${c.empleadorNombre || c.empleadoNombre || '—'}</div>
+                <div class="stars">${'⭐'.repeat(c.estrellas)} ${c.estrellas}/5</div>
+              </div>
+              ${c.comentario ? `<div style="color:#555;font-size:0.85rem;margin-top:6px;">"${c.comentario}"</div>` : ''}
+            </div>`).join('')}
+      `);
+    } catch { alert('Error al cargar calificaciones'); }
+  }
+
+  // ── SOLICITUDES (EMPLEADOR) ──
+  async function crearSolicitud() {
+    const titulo = document.getElementById('sol-titulo').value.trim();
+    const desc   = document.getElementById('sol-desc').value;
+    const precio = document.getElementById('sol-precio').value;
+    if (!titulo || !desc || !precio) return msg('sol-msg','Completa título, descripción y presupuesto');
+    const fd = new FormData();
+    fd.append('empleadorId',    currentUser.uid);
+    fd.append('titulo',         titulo);
+    fd.append('categoria',      document.getElementById('sol-cat').value);
+    fd.append('descripcion',    desc);
+    fd.append('precioOfrecido', precio);
+    fd.append('ubicacion', JSON.stringify({ ciudad: document.getElementById('sol-ciudad').value, barrio: document.getElementById('sol-barrio').value, lat: 0, lng: 0 }));
+    try {
+      const r = await (await fetch(`${API}/solicitudes`, { method: 'POST', body: fd })).json();
+      if (r.success) {
+        msg('sol-msg','✅ Solicitud publicada exitosamente','success');
+        document.getElementById('sol-titulo').value = '';
+        document.getElementById('sol-desc').value = '';
+        document.getElementById('sol-precio').value = '';
+      } else msg('sol-msg', r.error);
+    } catch { msg('sol-msg','Error de conexión'); }
+  }
+
+  async function cargarMisSolicitudes() {
+    const el = document.getElementById('mis-sol-list');
+    try {
+      const r = await (await fetch(`${API}/solicitudes`)).json();
+      const mias = r.data.filter(s => s.empleadorId === currentUser.uid);
+      if (!mias.length) { el.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">No tienes solicitudes aún</p>'; return; }
+      el.innerHTML = mias.map(s => `
+        <div class="item">
+          <div class="item-title">${s.titulo || s.categoria} <span class="badge badge-${s.estado}">${s.estado}</span></div>
+          <div class="item-sub">📂 ${s.categoria} · 💰 $${s.precioOfrecido} · 📍 ${s.ubicacion?.ciudad || ''}</div>
+          <div class="item-sub">${s.descripcion}</div>
+          <div class="item-actions">
+            <button class="btn btn-info btn-sm" onclick="verOfertas('${s.id}')">Ver ofertas</button>
+          </div>
+        </div>`).join('');
+    } catch { el.innerHTML = '<div class="alert alert-error">Error al cargar</div>'; }
+  }
+
+  async function verOfertas(solicitudId) {
+    const r = await (await fetch(`${API}/ofertas/${solicitudId}`)).json();
+    const ofertas = r.data || [];
+    openModal(`
+      <h3 style="margin-bottom:12px;">Ofertas recibidas</h3>
+      ${!ofertas.length ? '<p style="color:#999;">Nadie ha ofertado aún.</p>' :
+        ofertas.map(o => `
+          <div class="item">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <span class="link-name" onclick="verPerfil('${o.empleadoId}')">${o.empleadoNombre || o.empleadoId}</span>
+                <span class="badge badge-${o.estado}">${o.estado}</span>
+                <div class="stars" style="font-size:0.85rem;margin-top:2px;">${estrellas(o.calificacionPromedio)}</div>
+              </div>
+              <div style="font-size:1.1rem;font-weight:700;">$${o.precioOfertado}</div>
+            </div>
+            ${o.estado === 'pendiente' ? `<button class="btn btn-primary btn-sm" style="margin-top:8px;width:100%;" onclick="aceptarOferta('${o.id}')">✅ Aceptar oferta</button>` : ''}
+          </div>`).join('')}
+    `);
+  }
+
+  async function aceptarOferta(ofertaId) {
+    const r = await (await fetch(`${API}/ofertas/${ofertaId}/aceptar`, { method: 'PUT' })).json();
+    if (r.success) {
+      closeModal();
+      alert(`✅ Oferta aceptada.\n\nEl proyecto aparece en la pestaña Proyectos.`);
+      cargarMisSolicitudes();
+    } else alert('❌ ' + r.error);
+  }
+
+  // ── PROYECTOS (EMPLEADOR) ──
+  async function cargarProyectosEmp() {
+    const el = document.getElementById('proyectos-emp-list');
+    el.innerHTML = '<p style="color:#999;text-align:center;padding:12px;">Cargando...</p>';
+    try {
+      const r = await (await fetch(`${API}/proyectos/usuario/${currentUser.uid}`)).json();
+      const proyectos = (r.data || []).filter(p => p.empleadorId === currentUser.uid);
+      if (!proyectos.length) { el.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">No tienes proyectos aún</p>'; return; }
+      el.innerHTML = proyectos.map(p => renderProyectoEmp(p)).join('');
+    } catch { el.innerHTML = '<div class="alert alert-error">Error al cargar</div>'; }
+  }
+
+  function renderProyectoEmp(p) {
+    let acciones = '';
+    if (p.estado === 'activo')
+      acciones = `<button class="btn btn-warning btn-sm" onclick="pagarProyecto('${p.id}')">💳 Simular pago (Escrow)</button>`;
+    else if (p.estado === 'en_escrow')
+      acciones = `<div class="alert alert-info" style="margin-top:8px;">⏳ Fondos en escrow. Esperando que el empleado marque el trabajo como terminado.</div>`;
+    else if (p.estado === 'pendiente_codigo')
+      acciones = `<div class="code-box"><div class="code">${p.codigoLiberacion}</div><p>Entrega este código al empleado para liberar el pago</p></div>`;
+    else if (p.estado === 'completado' && !p.calificacion)
+      acciones = `
+        <div class="form-group" style="margin-top:10px;">
+          <label>Calificar al empleado (1–5 ⭐)</label>
+          <input type="number" id="cal-est-${p.id}" min="1" max="5" value="5" style="margin-bottom:6px;">
+          <input type="text" id="cal-com-${p.id}" placeholder="Comentario...">
+          <button class="btn btn-primary btn-sm" style="margin-top:6px;" onclick="calificar('${p.id}')">⭐ Enviar calificación</button>
+        </div>`;
+    return `
+      <div class="item">
+        <div class="item-title">${p.titulo || 'Proyecto'} <span class="badge badge-${p.estado}">${p.estado}</span></div>
+        <div class="item-sub">
+          Empleado: <span class="link-name" onclick="verPerfil('${p.empleadoId}')">${p.empleadoNombre || p.empleadoId}</span>
+          · Monto: $${p.monto}
+        </div>
+        ${acciones}
+        ${p.calificacion ? `<div class="alert alert-success" style="margin-top:8px;">✅ Calificado: ${p.calificacion.estrellas}⭐ — "${p.calificacion.comentario}"</div>` : ''}
+        <div class="item-actions"><button class="btn btn-info btn-sm" onclick="abrirChat('${p.id}')">💬 Chat</button></div>
+      </div>`;
+  }
+
+  async function pagarProyecto(id) {
+    const r = await (await fetch(`${API}/proyectos/${id}/pagar`, { method: 'PUT' })).json();
+    if (r.success) { cargarProyectosEmp(); cargarDashboardEmp(); }
+    else alert('❌ ' + r.error);
+  }
+
+  async function calificar(proyectoId) {
+    const r = await post(`${API}/calificaciones`, {
+      proyectoId,
+      estrellas: Number(document.getElementById(`cal-est-${proyectoId}`).value),
+      comentario: document.getElementById(`cal-com-${proyectoId}`).value
+    });
+    if (r.success) { alert('✅ Calificación guardada'); cargarProyectosEmp(); }
+    else alert('❌ ' + r.error);
+  }
+
+  // ── SOLICITUDES (EMPLEADO) ──
+  async function cargarSolicitudesDisp() {
+    const el = document.getElementById('sol-disp-list');
+    try {
+      const r = await (await fetch(`${API}/solicitudes`)).json();
+      if (!r.data.length) { el.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">No hay solicitudes activas</p>'; return; }
+      el.innerHTML = r.data.map(s => `
+        <div class="item">
+          <div class="item-title">${s.titulo || s.categoria}</div>
+          <div class="item-sub">
+            📂 ${s.categoria} · Publicado por: <span class="link-name" onclick="verPerfil('${s.empleadorId}')">${s.empleadorNombre || s.empleadorId}</span>
+            <span class="stars" style="font-size:0.8rem;"> ${estrellas(s.calificacionEmpleador)}</span>
+          </div>
+          <div class="item-sub">${s.descripcion}</div>
+          <div class="item-sub">💰 $${s.precioOfrecido} · 📍 ${s.ubicacion?.ciudad || ''}, ${s.ubicacion?.barrio || ''}</div>
+          <div class="item-actions">
+            <button class="btn btn-primary btn-sm" onclick="abrirOferta('${s.id}', ${s.precioOfrecido})">Hacer oferta</button>
+          </div>
+        </div>`).join('');
+    } catch { el.innerHTML = '<div class="alert alert-error">Error al cargar</div>'; }
+  }
+
+  function abrirOferta(solicitudId, precioBase) {
+    openModal(`
+      <h3 style="margin-bottom:8px;">Enviar oferta</h3>
+      <p style="color:#666;font-size:0.82rem;margin-bottom:14px;">Presupuesto del empleador: <strong>$${precioBase}</strong></p>
+      <div class="form-group"><label>Tu precio ($)</label><input type="number" id="of-precio" value="${precioBase}" min="1"></div>
+      <button class="btn btn-primary" onclick="enviarOferta('${solicitudId}')">Enviar oferta</button>
+      <div id="of-msg" style="margin-top:10px;"></div>
+    `);
+  }
+
+  async function enviarOferta(solicitudId) {
+    const r = await post(`${API}/ofertas`, { solicitudId, empleadoId: currentUser.uid, precioOfertado: Number(document.getElementById('of-precio').value) });
+    if (r.success) {
+      document.getElementById('of-msg').innerHTML = '<div class="alert alert-success">✅ Oferta enviada al empleador</div>';
+      setTimeout(closeModal, 1800);
+    } else document.getElementById('of-msg').innerHTML = `<div class="alert alert-error">${r.error}</div>`;
+  }
+
+  // ── PROYECTOS (EMPLEADO) ──
+  async function cargarProyectosEmd() {
+    const el = document.getElementById('proyectos-emd-list');
+    el.innerHTML = '<p style="color:#999;text-align:center;padding:12px;">Cargando...</p>';
+    try {
+      const r = await (await fetch(`${API}/proyectos/usuario/${currentUser.uid}`)).json();
+      const proyectos = (r.data || []).filter(p => p.empleadoId === currentUser.uid);
+      if (!proyectos.length) { el.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">No tienes proyectos asignados aún</p>'; return; }
+      el.innerHTML = proyectos.map(p => renderProyectoEmd(p)).join('');
+    } catch { el.innerHTML = '<div class="alert alert-error">Error al cargar</div>'; }
+  }
+
+  function renderProyectoEmd(p) {
+    let acciones = '';
+    if (p.estado === 'activo')
+      acciones = `<div class="alert alert-info">⏳ Esperando que el empleador confirme el pago (escrow).</div>`;
+    else if (p.estado === 'en_escrow')
+      acciones = `<button class="btn btn-primary btn-sm" onclick="finalizarProyecto('${p.id}')">✅ Marcar trabajo como terminado</button>`;
+    else if (p.estado === 'pendiente_codigo')
+      acciones = `
+        <div class="alert alert-info">Pide el código al empleador e ingrésalo aquí:</div>
+        <div class="form-group">
+          <input type="text" id="cod-inp-${p.id}" placeholder="000000" style="text-align:center;font-size:1.4rem;letter-spacing:6px;font-weight:700;" maxlength="6">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="validarCodigo('${p.id}')">🔓 Liberar pago</button>`;
+    else if (p.estado === 'completado' && !p.calificacionEmpleador)
+      acciones = `
+        <div class="alert alert-success">✅ ¡Pago recibido! $${(p.monto * 0.9).toFixed(2)}</div>
+        <div class="form-group" style="margin-top:10px;">
+          <label>Calificar al empleador (1–5 ⭐)</label>
+          <input type="number" id="cale-est-${p.id}" min="1" max="5" value="5" style="margin-bottom:6px;">
+          <input type="text" id="cale-com-${p.id}" placeholder="Comentario...">
+          <button class="btn btn-primary btn-sm" style="margin-top:6px;" onclick="calificarEmp('${p.id}')">⭐ Calificar empleador</button>
+        </div>`;
+    else if (p.estado === 'completado' && p.calificacionEmpleador)
+      acciones = `
+        <div class="alert alert-success">✅ ¡Pago recibido! $${(p.monto * 0.9).toFixed(2)}</div>
+        <div class="alert alert-info" style="margin-top:6px;">✅ Calificación enviada al empleador</div>`;
+    return `
+      <div class="item">
+        <div class="item-title">${p.titulo || 'Proyecto'} <span class="badge badge-${p.estado}">${p.estado}</span></div>
+        <div class="item-sub">
+          Empleador: <span class="link-name" onclick="verPerfil('${p.empleadorId}')">${p.empleadorNombre || p.empleadorId}</span>
+          · Monto: $${p.monto} · Tu ganancia: $${(p.monto * 0.9).toFixed(2)}
+        </div>
+        ${acciones}
+        <div class="item-actions"><button class="btn btn-info btn-sm" onclick="abrirChat('${p.id}')">💬 Chat</button></div>
+      </div>`;
+  }
+
+  async function finalizarProyecto(id) {
+    const r = await (await fetch(`${API}/proyectos/${id}/finalizar`, { method: 'PUT' })).json();
+    if (r.success) cargarProyectosEmd(); else alert('❌ ' + r.error);
+  }
+
+  async function validarCodigo(id) {
+    const codigo = document.getElementById(`cod-inp-${id}`)?.value?.trim();
+    if (!codigo || codigo.length !== 6) return alert('Ingresa el código de 6 dígitos');
+    const r = await post(`${API}/proyectos/${id}/codigo`, { codigo });
+    if (r.success) { alert('✅ ¡Código correcto! Pago liberado.'); cargarProyectosEmd(); }
+    else alert('❌ ' + r.error);
+  }
+
+  async function calificarEmp(proyectoId) {
+    const r = await post(`${API}/calificaciones/empleador`, {
+      proyectoId,
+      estrellas: Number(document.getElementById(`cale-est-${proyectoId}`).value),
+      comentario: document.getElementById(`cale-com-${proyectoId}`).value
+    });
+    if (r.success) { alert('✅ Calificación enviada al empleador'); cargarProyectosEmd(); }
+    else alert('❌ ' + r.error);
+  }
+
+  // ── CHAT (TIEMPO REAL) ──
+  async function abrirChat(proyectoId) {
+    if (currentChatRoom && currentChatRoom !== proyectoId) {
+      socket.off('new_message'); socket.off('typing'); socket.off('stop_typing');
+    }
+    currentChatRoom = proyectoId;
+    socket.emit('join_room', { proyectoId });
+
+    const r = await (await fetch(`${API}/chats/${proyectoId}/mensajes`)).json();
+    const msgs = r.success ? r.data : [];
+
+    openModal(`
+      <h3 style="margin-bottom:4px;">💬 Chat</h3>
+      <p style="font-size:0.75rem;color:#999;margin-bottom:10px;">Proyecto: ${proyectoId}</p>
+      <div class="chat-messages" id="chat-box">
+        ${msgs.length
+          ? msgs.map(m => mensajeBurbuja(m.texto, m.autorId === currentUser.uid)).join('')
+          : '<p style="color:#999;text-align:center;font-size:0.85rem;padding:20px;">Sin mensajes aún</p>'}
+      </div>
+      <div class="typing-hint" id="typing-hint"></div>
+      <div class="form-group">
+        <input type="text" id="msg-inp" placeholder="Escribe un mensaje..."
+          oninput="handleTyping('${proyectoId}')"
+          onkeydown="if(event.key==='Enter') enviarMsg('${proyectoId}')">
+      </div>
+      <button class="btn btn-primary btn-sm" style="width:100%;" onclick="enviarMsg('${proyectoId}')">Enviar</button>
+    `);
+
+    const cb = document.getElementById('chat-box');
+    if (cb) cb.scrollTop = cb.scrollHeight;
+
+    socket.off('new_message');
+    socket.on('new_message', (m) => {
+      const box = document.getElementById('chat-box');
+      if (!box) return;
+      const esPlaceholder = box.querySelector('p');
+      if (esPlaceholder) esPlaceholder.remove();
+      box.insertAdjacentHTML('beforeend', mensajeBurbuja(m.texto, m.autorId === currentUser.uid));
+      box.scrollTop = box.scrollHeight;
+      const hint = document.getElementById('typing-hint');
+      if (hint) hint.textContent = '';
+    });
+
+    socket.off('typing');
+    socket.on('typing', ({ nombre }) => {
+      const hint = document.getElementById('typing-hint');
+      if (hint) hint.textContent = `${nombre} está escribiendo...`;
+    });
+
+    socket.off('stop_typing');
+    socket.on('stop_typing', () => {
+      const hint = document.getElementById('typing-hint');
+      if (hint) hint.textContent = '';
+    });
+  }
+
+  function mensajeBurbuja(texto, mio) {
+    return `<div class="msg ${mio ? 'mine' : 'other'}"><div class="msg-bubble">${texto}</div></div>`;
+  }
+
+  async function enviarMsg(proyectoId) {
+    const inp  = document.getElementById('msg-inp');
+    const texto = inp?.value?.trim();
+    if (!texto) return;
+    inp.value = '';
+    clearTimeout(typingTimeout);
+    socket.emit('stop_typing', { proyectoId });
+
+    // Agrego el mensaje propio inmediatamente (el socket no me lo reenvía a mí mismo)
+    const box = document.getElementById('chat-box');
+    if (box) {
+      const esPlaceholder = box.querySelector('p');
+      if (esPlaceholder) esPlaceholder.remove();
+      box.insertAdjacentHTML('beforeend', mensajeBurbuja(texto, true));
+      box.scrollTop = box.scrollHeight;
+    }
+    await post(`${API}/chats/${proyectoId}/mensajes`, { autorId: currentUser.uid, texto });
+  }
+
+  function handleTyping(proyectoId) {
+    socket.emit('typing', { proyectoId, nombre: currentUser.nombre });
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => socket.emit('stop_typing', { proyectoId }), 2000);
+  }
+
+  // ── DASHBOARD EMPLEADOR ──
+  async function cargarDashboardEmp() {
+    try {
+      const [perfilRes, proyRes] = await Promise.all([
+        fetch(`${API}/usuarios/${currentUser.uid}`).then(r => r.json()),
+        fetch(`${API}/proyectos/usuario/${currentUser.uid}`).then(r => r.json())
+      ]);
+      const saldo = perfilRes.data?.saldo ?? 0;
+      const calEmp = perfilRes.data?.calificacionPromedioEmpleador ?? 0;
+      document.getElementById('emp-saldo').textContent = `$${saldo.toFixed(2)}`;
+      const proyectos   = (proyRes.data || []).filter(p => p.empleadorId === currentUser.uid);
+      const activos     = proyectos.filter(p => p.estado !== 'completado').length;
+      const completados = proyectos.filter(p => p.estado === 'completado').length;
+      const gastado     = proyectos.filter(p => p.estado === 'completado').reduce((s,p) => s + p.monto, 0);
+      document.getElementById('emp-stats').innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-num">${proyectos.length}</div><div class="stat-label">Total proyectos</div></div>
+          <div class="stat-box"><div class="stat-num">${activos}</div><div class="stat-label">En curso</div></div>
+          <div class="stat-box"><div class="stat-num">${completados}</div><div class="stat-label">Completados</div></div>
+          <div class="stat-box"><div class="stat-num">$${gastado.toFixed(2)}</div><div class="stat-label">Total invertido</div></div>
+          <div class="stat-box clickable" onclick="verCalificaciones('${currentUser.uid}','empleador')" style="grid-column:span 2;">
+            <div class="stat-num">${calEmp.toFixed(1)} ⭐</div>
+            <div class="stat-label">Mi calificación como empleador — tap para ver comentarios</div>
+          </div>
+        </div>`;
+    } catch (e) { console.error(e); }
+  }
+
+  async function agregarFondos() {
+    const monto = Number(document.getElementById('monto-fondos').value);
+    if (!monto || monto <= 0) return msg('fondos-msg','Ingresa un monto válido');
+    try {
+      const r = await post(`${API}/usuarios/${currentUser.uid}/saldo`, { monto });
+      if (r.success) {
+        msg('fondos-msg', `✅ $${monto.toFixed(2)} agregados correctamente`, 'success');
+        document.getElementById('monto-fondos').value = '';
+        cargarDashboardEmp();
+      } else msg('fondos-msg', r.error);
+    } catch { msg('fondos-msg','Error de conexión'); }
+  }
+
+  // ── DASHBOARD EMPLEADO ──
+  async function cargarDashboardEmd() {
+    try {
+      const [perfilRes, proyRes] = await Promise.all([
+        fetch(`${API}/usuarios/${currentUser.uid}`).then(r => r.json()),
+        fetch(`${API}/proyectos/usuario/${currentUser.uid}`).then(r => r.json())
+      ]);
+      const d = perfilRes.data || {};
+      const proyectos   = (proyRes.data || []).filter(p => p.empleadoId === currentUser.uid);
+      const completados = proyectos.filter(p => p.estado === 'completado').length;
+      const enCurso     = proyectos.filter(p => p.estado !== 'completado').length;
+      document.getElementById('emd-stats').innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-num">$${(d.gananciasTotales || 0).toFixed(2)}</div><div class="stat-label">Ganancias totales</div></div>
+          <div class="stat-box"><div class="stat-num">${completados}</div><div class="stat-label">Completados</div></div>
+          <div class="stat-box"><div class="stat-num">${enCurso}</div><div class="stat-label">En curso</div></div>
+          <div class="stat-box clickable" onclick="verCalificaciones('${currentUser.uid}','empleado')" style="grid-column:span 1;">
+            <div class="stat-num">${(d.calificacionPromedio || 0).toFixed(1)} ⭐</div>
+            <div class="stat-label">Mi calificación — tap para ver</div>
+          </div>
+          <div class="stat-box"><div class="stat-num">${(d.habilidades || []).length}</div><div class="stat-label">Habilidades</div></div>
+        </div>`;
+    } catch (e) { console.error(e); }
+  }
+
+  // ── FETCH HELPER ──
+  async function post(url, body) {
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    return r.json();
+  }
+</script>
+</body>
+</html>

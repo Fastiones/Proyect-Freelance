@@ -1,4 +1,4 @@
-const { db } = require('../firebase');
+const { admin, db } = require('../firebase');
 
 const getPerfil = async (id) => {
   const doc = await db.collection('users').doc(id).get();
@@ -22,4 +22,14 @@ const subirFoto = async (id, fotoUrl) => {
   return { foto: fotoUrl };
 };
 
-module.exports = { getPerfil, editarPerfil, subirFoto };
+const recargarSaldo = async (id, monto) => {
+  const montoNum = Number(monto);
+  if (isNaN(montoNum) || montoNum <= 0) throw { status: 400, mensaje: 'El monto debe ser mayor a 0' };
+  await db.collection('users').doc(id).update({
+    saldo: admin.firestore.FieldValue.increment(montoNum)
+  });
+  const doc = await db.collection('users').doc(id).get();
+  return { saldo: doc.data().saldo };
+};
+
+module.exports = { getPerfil, editarPerfil, subirFoto, recargarSaldo };

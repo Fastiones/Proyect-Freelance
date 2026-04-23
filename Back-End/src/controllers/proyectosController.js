@@ -1,5 +1,14 @@
 const proyectosService = require('../services/proyectosService');
 
+const listarPorUsuario = async (req, res) => {
+  try {
+    const data = await proyectosService.listarPorUsuario(req.params.uid);
+    res.json({ success: true, data });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.mensaje || e.message });
+  }
+};
+
 const getProyecto = async (req, res) => {
   try {
     const data = await proyectosService.getProyecto(req.params.id);
@@ -57,4 +66,4 @@ const subirFotos = async (req, res) => {
   }
 };
 
-module.exports = { getProyecto, pagar, finalizar, validarCodigo, subirFotos };
+module.exports = { listarPorUsuario, getProyecto, pagar, finalizar, validarCodigo, subirFotos };

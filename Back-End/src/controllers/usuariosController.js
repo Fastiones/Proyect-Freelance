@@ -33,4 +33,16 @@ const subirFoto = async (req, res) => {
   }
 };
 
-module.exports = { getPerfil, editarPerfil, subirFoto };
+const recargarSaldo = async (req, res) => {
+  try {
+    const { monto } = req.body;
+    if (!monto) return res.status(400).json({ success: false, error: 'El monto es requerido' });
+    const data = await usuariosService.recargarSaldo(req.params.id, monto);
+    res.json({ success: true, data });
+  } catch (e) {
+    const status = e.status || 500;
+    res.status(status).json({ success: false, error: e.mensaje || e.message });
+  }
+};
+
+module.exports = { getPerfil, editarPerfil, subirFoto, recargarSaldo };

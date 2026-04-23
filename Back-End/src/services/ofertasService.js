@@ -1,5 +1,10 @@
 const { admin, db } = require('../firebase');
 
+const generarIdCorto = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+};
+
 const crearOferta = async ({ solicitudId, empleadoId, precioOfertado }) => {
   const existente = await db.collection('ofertas')
     .where('solicitudId', '==', solicitudId)
@@ -24,7 +29,20 @@ const listarPorSolicitud = async (solicitudId) => {
   const snapshot = await db.collection('ofertas')
     .where('solicitudId', '==', solicitudId)
     .get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  const ofertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // Enriquecer con calificacionPromedio de cada empleado
+  const enriquecidas = await Promise.all(ofertas.map(async (o) => {
+    const userDoc = await db.collection('users').doc(o.empleadoId).get();
+    return {
+      ...o,
+      empleadoNombre: userDoc.exists ? userDoc.data().nombre : o.empleadoId,
+      calificacionPromedio: userDoc.exists ? (userDoc.data().calificacionPromedio || 0) : 0
+    };
+  }));
+
+  return enriquecidas;
 };
 
 const aceptarOferta = async (ofertaId) => {
@@ -38,23 +56,31 @@ const aceptarOferta = async (ofertaId) => {
   const solicitudRef = db.collection('solicitudes').doc(oferta.solicitudId);
   const solicitudDoc = await solicitudRef.get();
   if (!solicitudDoc.exists) throw { status: 404, mensaje: 'Solicitud no encontrada' };
-
   const solicitud = solicitudDoc.data();
-  const proyectoRef = db.collection('proyectos').doc();
+
+  const [empleadorDocReal, empleadoDoc] = await Promise.all([
+    db.collection('users').doc(solicitud.empleadorId).get(),
+    db.collection('users').doc(oferta.empleadoId).get()
+  ]);
+
+  const proyectoRef = db.collection('proyectos').doc(generarIdCorto());
 
   const proyecto = {
     solicitudId: oferta.solicitudId,
+    titulo: solicitud.titulo || solicitud.categoria || 'Sin título',
     empleadorId: solicitud.empleadorId,
+    empleadorNombre: empleadorDocReal.exists ? empleadorDocReal.data().nombre : solicitud.empleadorId,
     empleadoId: oferta.empleadoId,
+    empleadoNombre: empleadoDoc.exists ? empleadoDoc.data().nombre : oferta.empleadoId,
     monto: oferta.precioOfertado,
     estado: 'activo',
     codigoLiberacion: '',
     fotosFinales: [],
     calificacion: null,
+    calificacionEmpleador: null,
     fechaCreacion: admin.firestore.FieldValue.serverTimestamp()
   };
 
-  // Batch: crear proyecto + actualizar oferta + actualizar solicitud + rechazar otras ofertas
   const otrasOfertas = await db.collection('ofertas')
     .where('solicitudId', '==', oferta.solicitudId)
     .where('estado', '==', 'pendiente')

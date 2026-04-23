@@ -1,5 +1,17 @@
 const authService = require('../services/authService');
 
+const verificarCodigo = async (req, res) => {
+  const { email, codigo } = req.body;
+  if (!email || !codigo) return res.status(400).json({ success: false, error: 'email y codigo son requeridos' });
+  try {
+    const data = await authService.verificarCodigo(email, codigo);
+    res.json({ success: true, data });
+  } catch (e) {
+    const status = e.status || 500;
+    res.status(status).json({ success: false, error: e.mensaje || e.message });
+  }
+};
+
 const register = async (req, res) => {
   try {
     const data = await authService.registrar(req.body);
@@ -35,4 +47,16 @@ const diagnostico = async (req, res) => {
   }
 };
 
-module.exports = { register, login, diagnostico };
+const recuperarPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ success: false, error: 'El correo es requerido' });
+  try {
+    const data = await authService.recuperarPassword(email);
+    res.json({ success: true, data });
+  } catch (e) {
+    const status = e.status || 500;
+    res.status(status).json({ success: false, error: e.mensaje || e.message });
+  }
+};
+
+module.exports = { register, login, diagnostico, verificarCodigo, recuperarPassword };

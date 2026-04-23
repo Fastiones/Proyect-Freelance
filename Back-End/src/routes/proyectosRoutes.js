@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
-const { getProyecto, pagar, finalizar, validarCodigo, subirFotos } = require('../controllers/proyectosController');
+const { listarPorUsuario, getProyecto, pagar, finalizar, validarCodigo, subirFotos } = require('../controllers/proyectosController');
 
+// /usuario/:uid debe ir ANTES de /:id para que Express no lo capture como ID
+router.get('/usuario/:uid', listarPorUsuario);
 router.get('/:id', getProyecto);
 router.put('/:id/pagar', pagar);
 router.put('/:id/finalizar', finalizar);
