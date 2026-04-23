@@ -10,6 +10,7 @@ const solicitudesRoutes = require('./src/routes/solicitudesRoutes');
 const ofertasRoutes = require('./src/routes/ofertasRoutes');
 const proyectosRoutes = require('./src/routes/proyectosRoutes');
 const calificacionesRoutes = require('./src/routes/calificacionesRoutes');
+const chatsRoutes = require('./src/routes/chatsRoutes');
 
 fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
 
@@ -24,6 +25,7 @@ app.use('/api/solicitudes', solicitudesRoutes);
 app.use('/api/ofertas', ofertasRoutes);
 app.use('/api/proyectos', proyectosRoutes);
 app.use('/api/calificaciones', calificacionesRoutes);
+app.use('/api/chats', chatsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
