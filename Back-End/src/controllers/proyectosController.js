@@ -66,4 +66,17 @@ const subirFotos = async (req, res) => {
   }
 };
 
-module.exports = { listarPorUsuario, getProyecto, pagar, finalizar, validarCodigo, subirFotos };
+const cancelar = async (req, res) => {
+  try {
+    const data = await proyectosService.cancelar(req.params.id);
+    const mensaje = data.montoDevuelto > 0
+      ? `Proyecto cancelado. $${data.montoDevuelto.toFixed(2)} devueltos al saldo del empleador.`
+      : 'Proyecto cancelado.';
+    res.json({ success: true, mensaje, data });
+  } catch (e) {
+    const status = e.status || 500;
+    res.status(status).json({ success: false, error: e.mensaje || e.message });
+  }
+};
+
+module.exports = { listarPorUsuario, getProyecto, pagar, finalizar, validarCodigo, subirFotos, cancelar };

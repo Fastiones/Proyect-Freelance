@@ -1,4 +1,5 @@
 const { admin, db } = require('../firebase');
+const notifService = require('./notificacionesService');
 
 const listarPorUsuario = async (uid) => {
   const [comoEmpleador, comoEmpleado] = await Promise.all([
@@ -10,6 +11,7 @@ const listarPorUsuario = async (uid) => {
   for (const doc of [...comoEmpleador.docs, ...comoEmpleado.docs]) {
     if (!ids.has(doc.id)) { ids.add(doc.id); todos.push({ id: doc.id, ...doc.data() }); }
   }
+  todos.sort((a, b) => (b.fechaCreacion?._seconds ?? 0) - (a.fechaCreacion?._seconds ?? 0));
   return todos;
 };
 
@@ -39,6 +41,15 @@ const pagar = async (id) => {
   batch.update(ref, { estado: 'en_escrow' });
   batch.update(userRef, { saldo: admin.firestore.FieldValue.increment(-proyecto.monto) });
   await batch.commit();
+
+  try {
+    await notifService.crear(
+      proyecto.empleadoId,
+      'pago_escrow',
+      `💰 El empleador pagó $${proyecto.monto} por "${proyecto.titulo}". Fondos retenidos en escrow.`,
+      { proyectoId: id }
+    );
+  } catch (e) { console.error('Error notificando empleado (escrow):', e.message); }
 
   return { id, estado: 'en_escrow' };
 };
@@ -79,6 +90,37 @@ const validarCodigo = async (id, codigo) => {
   return { id, estado: 'completado', gananciaEmpleado };
 };
 
+const cancelar = async (id) => {
+  const ref = db.collection('proyectos').doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) throw { status: 404, mensaje: 'Proyecto no encontrado' };
+
+  const data = doc.data();
+  if (!['activo', 'en_escrow'].includes(data.estado))
+    throw { status: 400, mensaje: 'Solo se puede cancelar un proyecto activo o en escrow' };
+
+  const batch = db.batch();
+  batch.update(ref, { estado: 'cancelado' });
+
+  if (data.estado === 'en_escrow') {
+    batch.update(db.collection('users').doc(data.empleadorId), {
+      saldo: admin.firestore.FieldValue.increment(data.monto)
+    });
+  }
+
+  if (data.solicitudId) {
+    batch.update(db.collection('solicitudes').doc(data.solicitudId), { estado: 'activa' });
+  }
+
+  await batch.commit();
+
+  const txt = `❌ El proyecto "${data.titulo}" fue cancelado.${data.estado === 'en_escrow' ? ' Tu saldo fue devuelto.' : ''}`;
+  try { await notifService.crear(data.empleadorId, 'proyecto_cancelado', txt, { proyectoId: id }); } catch (e) { console.error(e.message); }
+  try { await notifService.crear(data.empleadoId,  'proyecto_cancelado', txt, { proyectoId: id }); } catch (e) { console.error(e.message); }
+
+  return { id, estado: 'cancelado', montoDevuelto: data.estado === 'en_escrow' ? data.monto : 0 };
+};
+
 const subirFotos = async (id, fotos) => {
   const ref = db.collection('proyectos').doc(id);
   const doc = await ref.get();
@@ -87,4 +129,4 @@ const subirFotos = async (id, fotos) => {
   return { id, fotosAgregadas: fotos };
 };
 
-module.exports = { listarPorUsuario, getProyecto, pagar, finalizar, validarCodigo, subirFotos };
+module.exports = { listarPorUsuario, getProyecto, pagar, finalizar, validarCodigo, subirFotos, cancelar };

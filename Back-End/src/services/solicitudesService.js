@@ -1,4 +1,5 @@
 const { admin, db } = require('../firebase');
+const { getIo } = require('../socket');
 
 const crearSolicitud = async (campos, fotos) => {
   const { empleadorId, titulo, categoria, descripcion, precioOfrecido } = campos;
@@ -20,12 +21,19 @@ const crearSolicitud = async (campos, fotos) => {
   };
 
   const docRef = await db.collection('solicitudes').add(nueva);
+
+  try {
+    const io = getIo();
+    if (io) io.emit('nueva_solicitud', { id: docRef.id, titulo: nueva.titulo || nueva.categoria, categoria: nueva.categoria });
+  } catch (e) { console.error('Error emitiendo nueva_solicitud:', e.message); }
+
   return { id: docRef.id, ...nueva };
 };
 
 const listarActivas = async () => {
   const snapshot = await db.collection('solicitudes')
     .where('estado', '==', 'activa')
+    .orderBy('fechaCreacion', 'desc')
     .get();
 
   const solicitudes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

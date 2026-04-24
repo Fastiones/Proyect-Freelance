@@ -1,4 +1,5 @@
 const { admin, db } = require('../firebase');
+const notifService = require('./notificacionesService');
 
 const generarIdCorto = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -22,6 +23,24 @@ const crearOferta = async ({ solicitudId, empleadoId, precioOfertado }) => {
   };
 
   const docRef = await db.collection('ofertas').add(nueva);
+
+  try {
+    const [solicitudDoc, empleadoDoc] = await Promise.all([
+      db.collection('solicitudes').doc(solicitudId).get(),
+      db.collection('users').doc(empleadoId).get()
+    ]);
+    if (solicitudDoc.exists) {
+      const { empleadorId, titulo, categoria } = solicitudDoc.data();
+      const empleadoNombre = empleadoDoc.exists ? empleadoDoc.data().nombre : 'Un empleado';
+      await notifService.crear(
+        empleadorId,
+        'nueva_oferta',
+        `${empleadoNombre} ofertó $${Number(precioOfertado)} por "${titulo || categoria}"`,
+        { solicitudId, empleadoId }
+      );
+    }
+  } catch (e) { console.error('Error notificando empleador:', e.message); }
+
   return { id: docRef.id, ...nueva };
 };
 
@@ -32,7 +51,6 @@ const listarPorSolicitud = async (solicitudId) => {
 
   const ofertas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  // Enriquecer con calificacionPromedio de cada empleado
   const enriquecidas = await Promise.all(ofertas.map(async (o) => {
     const userDoc = await db.collection('users').doc(o.empleadoId).get();
     return {
@@ -95,6 +113,16 @@ const aceptarOferta = async (ofertaId) => {
   });
 
   await batch.commit();
+
+  try {
+    await notifService.crear(
+      oferta.empleadoId,
+      'oferta_aceptada',
+      `✅ ¡Tu oferta para "${proyecto.titulo}" fue aceptada!`,
+      { proyectoId: proyectoRef.id }
+    );
+  } catch (e) { console.error('Error notificando empleado:', e.message); }
+
   return { proyectoId: proyectoRef.id, ...proyecto };
 };
 

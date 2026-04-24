@@ -3,7 +3,7 @@ const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
+const fs   = require('fs');
 const { Server } = require('socket.io');
 
 const socketModule = require('./src/socket');
@@ -14,6 +14,7 @@ const ofertasRoutes = require('./src/routes/ofertasRoutes');
 const proyectosRoutes = require('./src/routes/proyectosRoutes');
 const calificacionesRoutes = require('./src/routes/calificacionesRoutes');
 const chatsRoutes = require('./src/routes/chatsRoutes');
+const notificacionesRoutes = require('./src/routes/notificacionesRoutes');
 
 fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
 
@@ -29,16 +30,17 @@ app.use('/api/ofertas', ofertasRoutes);
 app.use('/api/proyectos', proyectosRoutes);
 app.use('/api/calificaciones', calificacionesRoutes);
 app.use('/api/chats', chatsRoutes);
-
-app.get('/test', (req, res) => {
-  res.sendFile(path.join(__dirname, 'test.html'));
-});
+app.use('/api/notificaciones', notificacionesRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 socketModule.init(io);
 
 io.on('connection', (socket) => {
+  socket.on('join_user', ({ uid }) => {
+    socket.join(uid);
+  });
+
   socket.on('join_room', ({ proyectoId }) => {
     socket.join(proyectoId);
   });
